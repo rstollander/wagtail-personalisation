@@ -419,7 +419,7 @@ class UserIsLoggedInRule(AbstractBaseRule):
         verbose_name = _('Logged in Rule')
 
     def test_user(self, request=None):
-        return request.user.is_authenticated() == self.is_logged_in
+        return request.user.is_authenticated == self.is_logged_in
 
     def description(self):
         return {
@@ -469,10 +469,13 @@ class OriginCountryRule(AbstractBaseRule):
             pass
 
     def get_geoip_country(self, request):
-        GeoIP2 = get_geoip_module()
-        if GeoIP2 is None:
+        try:
+            GeoIP2 = get_geoip_module()
+            if GeoIP2 is None:
+                return False
+            return GeoIP2().country_code(get_client_ip(request)).lower()
+        except:
             return False
-        return GeoIP2().country_code(get_client_ip(request)).lower()
 
     def get_country(self, request):
         # Prioritise CloudFlare and CloudFront country detection over GeoIP.
